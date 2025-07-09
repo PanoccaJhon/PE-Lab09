@@ -52,13 +52,37 @@ Permite a tu aplicación Dart interactuar **directamente** con librerías nativa
 
 ---
 
-## 🚀 Implementación de Ejemplo: El Versátil MethodChannel
+## 🚀 Implementación de Ejemplo: Calculadora Nativa con MethodChannel
 
-Para ilustrar cómo se aplica uno de estos métodos en la práctica, nos centraremos en **MethodChannel**. Es el método más común y fácil de entender para iniciar la comunicación nativa, perfecto para solicitar una acción y recibir un resultado.
+Este ejemplo demuestra cómo utilizar **MethodChannel** para implementar una **calculadora básica** que realiza suma, resta, multiplicación y división. Aprenderás a enviar múltiples argumentos desde Flutter al código nativo y a manejar diferentes operaciones dentro de un mismo canal.
 
-A continuación, te muestro cómo implementar una función que obtiene la **versión del sistema operativo** (Android o iOS) y la muestra en tu aplicación Flutter.
+### 📝 Pasos Clave de la Implementación:
 
-### 1. 🎯 En Flutter (Dart): Define Tu Canal
+1.  **Definición del Canal en Flutter (Dart):**
+    * Se creó el archivo `lib/calculator_channel.dart`.
+    * Se definió un `MethodChannel` con un nombre único (`'com.pe.lab09/calculator'`).
+    * Se implementó un método `calculate(operation, a, b)` que usa `_calculatorChannel.invokeMethod(operation, {'a': a, 'b': b})` para enviar la operación y los números como un mapa de argumentos al lado nativo.
 
-Primero, necesitas un `MethodChannel` con un nombre **único** (¡recuerda usar el mismo nombre en la parte nativa!) y un método para invocar la funcionalidad.
+2.  **Interfaz de Usuario en Flutter (Dart):**
+    * Se modificó `lib/main.dart` para crear una interfaz de calculadora simple.
+    * Se añadieron `TextField`s para la entrada de dos números y `ElevatedButton`s para cada operación (suma, resta, multiplicación, división).
+    * Cada botón llama a `_performOperation(String operation)` que, a su vez, invoca al método `calculate` de `CalculatorChannel`.
+    * El resultado de la operación nativa se muestra en un `Text` en la interfaz.
 
+3.  **Lógica Nativa en Android (Kotlin):**
+    * Se modificó `android/app/src/main/kotlin/com.tuapp.nombre/MainActivity.kt`.
+    * Se configuró un `MethodChannel` con el **mismo nombre** que en Dart.
+    * Dentro de `setMethodCallHandler`, se extrajeron los argumentos (`a` y `b`) del `call.argument<Double>()`.
+    * Se usó una sentencia `when (call.method)` para ejecutar la lógica matemática correspondiente (`add`, `subtract`, `multiply`, `divide`).
+    * Se incluyó manejo específico para la **división por cero**, enviando un `result.error()` a Flutter si ocurre.
+    * Se envió el `result.success(operationResult)` de vuelta a Flutter, o `result.notImplemented()` si el método no se reconoció.
+
+4.  **Lógica Nativa en iOS (Swift):**
+    * Se modificó `ios/Runner/AppDelegate.swift`.
+    * Se configuró un `FlutterMethodChannel` con el **mismo nombre** que en Dart y Android.
+    * Dentro de `setMethodCallHandler`, se extrajeron los argumentos (`a` y `b`) del `call.arguments as? [String: Any]`.
+    * Se utilizó un `switch call.method` para procesar la operación solicitada.
+    * Se implementó la validación para la **división por cero**, enviando un `FlutterError` a Flutter en caso de ser necesario.
+    * Se envió el resultado (`result(res)`) o un error (`result(FlutterError)`) de vuelta a Flutter.
+
+---
